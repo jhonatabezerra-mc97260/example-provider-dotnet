@@ -61,7 +61,7 @@ no_deploy:
 	@echo "Not deploying as not on master branch"
 
 can_i_deploy: .env
-	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT} --to prod
+	@"${PACT_CLI}" broker can-i-deploy --pacticipant ${PACTICIPANT} --version ${GIT_COMMIT}
 
 deploy_app:
 	@echo "Deploying to prod"
@@ -70,7 +70,6 @@ tag_as_prod:
 	@"${PACT_CLI}" broker create-version-tag \
 	  --pacticipant ${PACTICIPANT} \
 	  --version ${GIT_COMMIT} \
-	  --tag prod
 
 ## =====================
 ## Pactflow set up tasks
