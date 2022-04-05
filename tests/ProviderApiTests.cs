@@ -32,37 +32,29 @@ namespace tests
         [Fact]
         public void EnsureProviderApiHonoursPactWithConsumer() {
             // Arrange
+            var pactBaseUrl = "https://rdisoftware.pactflow.io";
+            var gitCommit = "bfc7d93b755ccf76a878ad99e3b6332aef067572";
+            var pactBrokerToken = "s8V8Ol4fKqfq54cYvAEKZg";
             var config = new PactVerifierConfig
             {
                 // NOTE: We default to using a ConsoleOutput, however xUnit 2 does not capture the
                 // console output, so a custom outputter is required.
-                Outputters = new List<IOutput>
-                                {
-                                    new ConsoleOutput()
-                                },
+                Outputters = new List<IOutput> { new ConsoleOutput() },
 
                 // Output verbose verification logs to the test output
                 Verbose = true,
                 PublishVerificationResults = true,
-                ProviderVersion = System.Environment.GetEnvironmentVariable("GIT_COMMIT")
+                ProviderVersion = Environment.GetEnvironmentVariable("GIT_COMMIT")
             };
 
             IPactVerifier pactVerifier = new PactVerifier(config);
-            string pactUrl = System.Environment.GetEnvironmentVariable("PACT_URL");
             pactVerifier
                 .ProviderState($"{_pactServiceUri}/provider-states")
-                .ServiceProvider("pactflow-example-provider-dotnet", _providerUri);
-
-            if (pactUrl != "" && pactUrl != null) {
-                // Webhook path - verify the specific pact
-                pactVerifier.PactUri(pactUrl, new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")));
-            }
-            else {
-                // Standard verification path - run the
-                pactVerifier.PactBroker(System.Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL"),
-                    uriOptions: new PactUriOptions(System.Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN")),
-                    consumerVersionTags: new List<string> { "master", "prod" });
-            }
+                .ServiceProvider("provider", _providerUri)
+                .HonoursPactWith("consumer")
+                .PactBroker(Environment.GetEnvironmentVariable("PACT_BROKER_BASE_URL") ?? pactBaseUrl,
+                    uriOptions: new PactUriOptions(Environment.GetEnvironmentVariable("PACT_BROKER_TOKEN") ?? pactBrokerToken),
+                    consumerVersionTags: new List<string> { "master", "prod", "main" });
 
             // Act / Assert
             pactVerifier.Verify();
